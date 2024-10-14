@@ -1,0 +1,30 @@
+{
+  "functions": [
+    {
+      "source": "flask",
+      "codebase": "flask",
+      "ignore": [
+        "venv",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ],
+  "hosting": {
+    "public": "public",
+    "rewrites": [
+      {
+        "source": "/",
+        "function": {
+          "functionId": "server"
+        }
+      }
+    ],
+    "ignore": [
+      "firebase.json",
+      "**/.*"
+    ]
+  }
+}
