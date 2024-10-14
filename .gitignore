@@ -1,4 +1,6 @@
 *.local
 *.log
+*.cache
+.firebase
 flask/venv
 flask/__pycache__
