@@ -5,16 +5,16 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="/css/style.css">
 		<script type="module" src="/js/login.js"></script>
-		<title>ACT - Login</title>
+		<title>ACT - Register</title>
 	</head>
 	<body>
 		{% include "header.html" %}
 		<main>
 			<div class="container">
-				<h2>Login</h2>
+				<h2>Register</h2>
 				<input type="text" placeholder="Username" class="inputField" id="email" required>
 				<input type="text" placeholder="Password" class="inputField" id=password required>
-				<a class="heroButton" onclick="login()">Login</a>
+				<a class="heroButton" onclick="register()">Register</a>
 				<p>or</p>
 				<button type="button" class="login-with-google-btn" onclick="googleLogin()">
 					Sign in with Google

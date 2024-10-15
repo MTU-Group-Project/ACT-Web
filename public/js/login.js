@@ -1,14 +1,60 @@
 import { API } from "/js/api.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"
 
-async function login(username, password) {
-	// Call API with username and password
-	let loginResponse = await API("login", {username, password});
+const firebaseConfig = {
+	apiKey: "AIzaSyCWQkEmFkxDqsWi_ilIbEdOLpPcGu9kWrg",
+	authDomain: "mtu-group-project-act.firebaseapp.com",
+	projectId: "mtu-group-project-act",
+	storageBucket: "mtu-group-project-act.appspot.com"
+}
 
-	// Handle error
-	if(!loginResponse.userID) return alert(loginResponse);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+
+async function googleLogin() {
+	const provider = new GoogleAuthProvider();
+	try {
+		let loginResult = await signInWithPopup(auth, provider);
+	} catch(error) {
+		return alert(error);
+	}
+	alert("Logged in");
+}
+
+
+async function login() {
+	let email = document.getElementById("email").value;
+	let password = document.getElementById("password").value;
+	let credential;
 	
-	// Refresh on successful login
-	document.location.reload()
+	try {
+		credential = await signInWithEmailAndPassword(auth, email, password);
+	} catch(error) {
+		return alert(error);
+	}
+
+	const user = credential.user;
+	console.log(user);
+	alert("Logged in")
+}
+
+async function register() {
+	let email = document.getElementById("email").value;
+	let password = document.getElementById("password").value;
+	let credential;
+	
+	try {
+		credential = await createUserWithEmailAndPassword(auth, email, password);
+	} catch(error) {
+		return alert(error);
+	}
+
+	const user = credential.user;
+	alert("Account created")
+	document.location = "/login"
 }
 
 document.login = login
+document.register = register
+document.googleLogin = googleLogin
