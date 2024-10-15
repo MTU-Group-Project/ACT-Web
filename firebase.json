@@ -16,7 +16,7 @@
     "public": "public",
     "rewrites": [
       {
-        "source": "/",
+        "source": "**",
         "function": {
           "functionId": "server"
         }
