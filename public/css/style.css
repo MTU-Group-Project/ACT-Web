@@ -73,6 +73,10 @@ a{
     text-decoration: none;
 }
 
+td a{
+    color: blue;
+}
+
 .navbar{
     min-height: 70px;
     display: flex;

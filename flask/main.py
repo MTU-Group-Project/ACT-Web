@@ -22,6 +22,10 @@ def login():
 def register():
 	return render_template("register.html")
 
+@app.get("/clients")
+def clients():
+	return render_template("clients.html")
+
 
 @app.get("/api/shares")
 def api_shares():
