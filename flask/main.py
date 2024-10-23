@@ -45,6 +45,33 @@ def api_shares():
 
 shares.begin_share_subroutine(120)
 
+@app.get("/api/clients")
+def get_clients():
+    ref = db.reference('clients')
+    clients = ref.get()
+    return app.response_class(
+        response=json.dumps(clients),
+        status=200,
+        mimetype="application/json"
+    )
+
+# @app.post("/api/clients")
+# def create_client():
+#     data = request.json  # Get JSON data from the request
+#     client_id = data.get("id")
+#     client_name = data.get("client_name")
+    
+#     ref = db.reference('clients')
+#     ref.child(client_id).set({
+#         'client_name': client_name
+#     })
+    
+#     return app.response_class(
+#         response=json.dumps({"status": "success"}),
+#         status=201,
+#         mimetype="application/json"
+#     )
+
 
 # Firebase stuff: #
 initialize_app()

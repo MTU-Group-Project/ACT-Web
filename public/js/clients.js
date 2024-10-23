@@ -31,9 +31,39 @@ async function deleteClient(id){
 	console.log(`Want to delete client ${id}!`)
 }
 
+async function getClients2() {
+    const response = await fetch('/api/clients');
+    if (response.ok) {
+        const clients = await response.json();
+        console.log(clients);
+    } else {
+        alert("Failed to fetch clients");
+    }
+}
+
+// async function createClient() {
+//     const clientId = 0;
+//     const clientName = "Johnny";
+
+//     const response = await fetch('/api/clients', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify({ id: clientId, client_name: clientName })
+//     });
+
+//     if (response.ok) {
+//         alert("Client created successfully");
+//     } else {
+//         alert("Failed to create client");
+//     }
+// }
+
 document.getClients = getClients
 document.deleteClient = deleteClient
 
 document.addEventListener('DOMContentLoaded', () => {
     getClients();
+    getClients2();
 });
