@@ -236,3 +236,20 @@ footer{
     border-color: #000;
     outline: none;
 }
+
+/*Finance Report Page CSS*/
+table {
+    width: 60%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+table, th, td {
+    border: 1px solid black;
+}
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background-color: #f2f2f2;
+}

@@ -27,6 +27,11 @@ def clients():
 	return render_template("clients.html")
 
 
+@app.get("/reports")
+def reports():
+	return render_template("financial_reports.html")
+
+
 @app.get("/api/shares")
 def api_shares():
 	res = app.response_class(
