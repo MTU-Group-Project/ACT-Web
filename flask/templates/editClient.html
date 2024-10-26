@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/css/style.css">
+        <script type="module" src="/js/login.js"></script>
+        <script type="module" src="/js/clients.js"></script>
+        <title>ACT CLIENTS</title>
+    </head>
+    <body>
+        {% include "header.html" %}
+        <main>
+            <div class="container">
+                <h2>Editing Client</h2>
+                <input type="text" placeholder="Client Name" class="inputField" id="clientName" required>
+                <input type="text" placeholder="Client Email" class="inputField" id="clientEmail" required>
+                <a class="heroButton" onclick="saveClient()">Save</a>
+                <a class="heroButton" onclick="cancelEdit()">Cancel</a>
+            </div>
+        </main>
+        {% include "footer.html" %}
+    </body>
+</html>

@@ -31,6 +31,10 @@ def clients():
 def reports():
 	return render_template("financial_reports.html")
 
+@app.get("/editClient/<client_id>")
+def edit_client(client_id):
+    return render_template("editClient.html", client_id=client_id)
+
 
 @app.get("/api/shares")
 def api_shares():
@@ -86,6 +90,49 @@ def delete_client(client_id):
     return app.response_class(
         response=json.dumps({"status": "success", "client_id": client_id}),
         status=200,
+        mimetype="application/json"
+    )
+
+@app.get("/api/clients/<client_id>")
+def get_client(client_id):
+    ref = db.reference('clients').child(client_id)
+    client = ref.get()
+    
+    if client:
+        return app.response_class(
+            response=json.dumps(client),
+            status=200,
+            mimetype="application/json"
+        )
+    
+    return app.response_class(
+        response=json.dumps({"error": "Client not found"}),
+        status=404,
+        mimetype="application/json"
+    )
+
+@app.put("/api/clients/<client_id>")
+def update_client(client_id):
+    data = request.json
+    client_name = data.get("name")
+    client_email = data.get("email")
+
+    ref = db.reference('clients').child(client_id)
+    
+    if ref.get() is not None:
+        ref.update({
+            'name': client_name,
+            'email': client_email
+        })
+        return app.response_class(
+            response=json.dumps({"status": "success", "client_id": client_id}),
+            status=200,
+            mimetype="application/json"
+        )
+    
+    return app.response_class(
+        response=json.dumps({"error": "Client not found"}),
+        status=404,
         mimetype="application/json"
     )
 

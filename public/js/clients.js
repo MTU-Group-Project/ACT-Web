@@ -26,8 +26,8 @@ async function getClients() {
 		const editCell = document.createElement("td");
 		const deleteCell = document.createElement("td");
 
-		nameCell.innerHTML = `<a href="./editClient.html/${client.id}">${client.name}</a>`;
-		editCell.innerHTML = `<a href="./editClient.html/${client.id}">✏️</a>`;
+		nameCell.innerHTML = `<a href="editClient/${client.id}">${client.name}</a>`;
+		editCell.innerHTML = `<a href="editClient/${client.id}">✏️</a>`;
 		deleteCell.innerHTML = `<a href="#" onclick="deleteClient('${client.id}')">❌</a>`;
 
 		row.appendChild(nameCell);
@@ -94,11 +94,60 @@ function toggleClientForm() {
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
-document.getClients = getClients
-document.createClient = createClient
-document.deleteClient = deleteClient
-document.toggleClientForm = toggleClientForm
+async function loadClient() {
+    const pathParts = window.location.pathname.split('/');
+    const clientId = pathParts[pathParts.length - 1];
+
+    const response = await fetch(`/api/clients/${clientId}`);
+    if (response.ok) {
+        const client = await response.json();
+        document.getElementById('clientName').value = client.name;
+        document.getElementById('clientEmail').value = client.email;
+    } else {
+        alert("Failed to load client data");
+    }
+}
+
+async function saveClient() {
+    const pathParts = window.location.pathname.split('/');
+    const clientId = pathParts[pathParts.length - 1];
+    const clientName = document.getElementById('clientName').value;
+    const clientEmail = document.getElementById('clientEmail').value;
+
+    const response = await fetch(`/api/clients/${clientId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: clientName, email: clientEmail })
+    });
+
+    if (response.ok) {
+        alert("Client updated successfully");
+        document.location = "/clients";
+    } else {
+        alert("Failed to update client");
+    }
+}
+
+function cancelEdit() {
+    document.location = "/clients";
+}
+
+document.getClients = getClients;
+document.createClient = createClient;
+document.deleteClient = deleteClient;
+document.toggleClientForm = toggleClientForm;
+document.saveClient = saveClient;
+document.cancelEdit = cancelEdit;
 
 document.addEventListener('DOMContentLoaded', () => {
-    getClients();
+    const pathParts = window.location.pathname.split('/');
+    const secondPart = pathParts[1];
+
+    if (secondPart === "clients") {
+        getClients();
+    } else if (secondPart === "editClient") {
+        loadClient();
+    }
 });

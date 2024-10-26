@@ -9,28 +9,17 @@
         <title>ACT CLIENTS</title>
     </head>
     <body>
-        <header>
-            <nav class="navbar">
-                <a href="../views/index.html" class="nav-branding">ACT</a>
-                <div class="nav-menu">
-                    <div class="nav-menu">
-                        <div class="nav-item">
-                            <a href="../views/accountDetails.html" class="nav-link">ACCOUNT DETAILS</a>
-                        </div>
-                    </div>
-                </div>
-            </nav> 
-        </header>
+        {% include "header.html" %}
         <main>
             <div class="container">
                 <h2>Clients <a href="#" title="Add Client" onclick="toggleClientForm()">➕</a></h2>
 
                 <div id="clientForm" style="display: none;">
                     <h3>Add Client</h3>
-                    <input type="text" id="clientName" placeholder="Client Name" required />
-                    <input type="email" id="clientEmail" placeholder="Client Email" required />
-                    <button onclick="createClient()">Add</button>
-                    <button onclick="toggleClientForm()">Cancel</button>
+                    <input type="text" id="clientName" class="inputField" placeholder="Client Name" required />
+                    <input type="email" id="clientEmail" class="inputField" placeholder="Client Email" required />
+                    <button class="heroButton" onclick="createClient()">Add</button>
+                    <button class="heroButton" onclick="toggleClientForm()">Cancel</button>
                 </div>
 
                 <table onload="getClients()" id="clientsTable">
@@ -47,10 +36,6 @@
                 </table>
             </div>
         </main>
-        <footer>
-            <div class="footerBottom">
-                <p>Copyright &copy;2023; Designed by <span class="designer">Nichita, Daniel, Alex, Wiktor</span></p>
-            </div>
-        </footer>
+        {% include "footer.html" %}
     </body>
 </html>
