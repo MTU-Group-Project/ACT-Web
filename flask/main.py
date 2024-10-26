@@ -57,27 +57,37 @@ def get_clients():
 
 @app.post("/api/clients")
 def create_client():
-	data = request.json 
-	client_id = data.get("id")
-	client_name = data.get("name")
-	client_email = data.get("email")
-	user_id = data.get("userID")
+    data = request.json
+    client_name = data.get("name")
+    client_email = data.get("email")
+    user_id = data.get("userID")
 
-	ref = db.reference('clients')
-	new_client_ref = ref.push()
+    ref = db.reference('clients')
+    new_client_ref = ref.push()
 
-	new_client_ref.set(client_id).set({
-		'name': client_name,
-		'email': client_email,
-		'userID': user_id
-	})
+    new_client_ref.set({
+		'id': new_client_ref.key,
+        'name': client_name,
+        'email': client_email,
+        'userID': user_id
+    })
 
-	return app.response_class(
-        response=json.dumps({"status": "success", "client_id": new_client_ref.key}),  # Return the new client's key
+    return app.response_class(
+        response=json.dumps({"status": "success", "client_id": new_client_ref.key}),
         status=201,
         mimetype="application/json"
     )
 
+@app.delete("/api/clients/<client_id>")
+def delete_client(client_id):
+    ref = db.reference('clients').child(client_id)
+    ref.delete()
+
+    return app.response_class(
+        response=json.dumps({"status": "success", "client_id": client_id}),
+        status=200,
+        mimetype="application/json"
+    )
 
 # Firebase stuff: #
 initialize_app()

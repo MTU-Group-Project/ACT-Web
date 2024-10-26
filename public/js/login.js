@@ -1,6 +1,6 @@
 import { API } from "/js/api.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"
 
 const firebaseConfig = {
 	apiKey: "AIzaSyCWQkEmFkxDqsWi_ilIbEdOLpPcGu9kWrg",
@@ -55,9 +55,17 @@ async function register() {
 	document.location = "/login"
 }
 
-export async function getCurrentUID() {
+export function getCurrentUID() {
 	const auth = getAuth();
-	return auth.currentUser ? auth.currentUser.uid : null;
+	return new Promise((resolve) => {
+		onAuthStateChanged(auth, (user) => {
+			if (user) {
+				resolve(user.uid);
+			} else {
+				resolve(null);
+			}
+		});
+	});
 }
 
 document.login = login
