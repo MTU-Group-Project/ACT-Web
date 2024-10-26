@@ -63,8 +63,14 @@ async function createClient() {
         return;
     }
 
-    const clientName = "Daniel";
-    const clientEmail = "daniel@gmail.com";
+    const clientName = document.getElementById('clientName').value;
+    const clientEmail = document.getElementById('clientEmail').value;
+
+    if (!clientName || !clientEmail) {
+        alert("Please fill in both fields.");
+        return;
+    }
+
     const response = await fetch('/api/clients', {
         method: 'POST',
         headers: {
@@ -74,6 +80,8 @@ async function createClient() {
     });
 
     if (response.ok) {
+        const form = document.getElementById('clientForm');
+        form.style.display = 'none';
         alert("Client created successfully");
         await getClients();
     } else {
@@ -81,11 +89,16 @@ async function createClient() {
     }
 }
 
+function toggleClientForm() {
+    const form = document.getElementById('clientForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
 document.getClients = getClients
 document.createClient = createClient
 document.deleteClient = deleteClient
+document.toggleClientForm = toggleClientForm
 
 document.addEventListener('DOMContentLoaded', () => {
     getClients();
-    //createClient();
 });

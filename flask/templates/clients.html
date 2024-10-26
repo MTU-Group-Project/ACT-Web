@@ -23,7 +23,16 @@
         </header>
         <main>
             <div class="container">
-                <h2>Clients <a href="#" title="Add Client" onclick="createClient()">➕</a></h2>
+                <h2>Clients <a href="#" title="Add Client" onclick="toggleClientForm()">➕</a></h2>
+
+                <div id="clientForm" style="display: none;">
+                    <h3>Add Client</h3>
+                    <input type="text" id="clientName" placeholder="Client Name" required />
+                    <input type="email" id="clientEmail" placeholder="Client Email" required />
+                    <button onclick="createClient()">Add</button>
+                    <button onclick="toggleClientForm()">Cancel</button>
+                </div>
+
                 <table onload="getClients()" id="clientsTable">
                     <thead>
                         <tr>
