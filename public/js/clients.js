@@ -1,13 +1,16 @@
-// For now I'm using dummy data to test the client record system
-const clients = [
-	{ id: 1, name: "Client A" },
-	{ id: 2, name: "Client B" },
-	{ id: 3, name: "Client C" },
-	{ id: 4, name: "Client D" },
-];
+import { getCurrentUID } from "/js/login.js";
 
 async function getClients() {
-	const tableBody = document.querySelector("#clientsTable tbody");
+    const response = await fetch('/api/clients');
+    if (!response.ok) {
+        alert("Failed to fetch clients");
+        return;
+    }
+
+    const clients = await response.json();
+    console.log(clients);
+
+    const tableBody = document.querySelector("#clientsTable tbody");
 	clients.forEach(client => {
 		const row = document.createElement("tr");
 		
@@ -31,39 +34,31 @@ async function deleteClient(id){
 	console.log(`Want to delete client ${id}!`)
 }
 
-async function getClients2() {
-    const response = await fetch('/api/clients');
+async function createClient() {
+    const clientName = "Daniel";
+    const clientEmail = "daniel@gmail.com"
+    const userID = await getCurrentUID();
+    console.log(userID);
+
+    const response = await fetch('/api/clients', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: clientName, email: clientEmail, userID })
+    });
+
     if (response.ok) {
-        const clients = await response.json();
-        console.log(clients);
+        alert("Client created successfully");
     } else {
-        alert("Failed to fetch clients");
+        alert("Failed to create client");
     }
 }
-
-// async function createClient() {
-//     const clientId = 0;
-//     const clientName = "Johnny";
-
-//     const response = await fetch('/api/clients', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({ id: clientId, client_name: clientName })
-//     });
-
-//     if (response.ok) {
-//         alert("Client created successfully");
-//     } else {
-//         alert("Failed to create client");
-//     }
-// }
 
 document.getClients = getClients
 document.deleteClient = deleteClient
 
 document.addEventListener('DOMContentLoaded', () => {
     getClients();
-    getClients2();
+    createClient();
 });

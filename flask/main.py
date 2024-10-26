@@ -55,22 +55,28 @@ def get_clients():
         mimetype="application/json"
     )
 
-# @app.post("/api/clients")
-# def create_client():
-#     data = request.json  # Get JSON data from the request
-#     client_id = data.get("id")
-#     client_name = data.get("client_name")
-    
-#     ref = db.reference('clients')
-#     ref.child(client_id).set({
-#         'client_name': client_name
-#     })
-    
-#     return app.response_class(
-#         response=json.dumps({"status": "success"}),
-#         status=201,
-#         mimetype="application/json"
-#     )
+@app.post("/api/clients")
+def create_client():
+	data = request.json 
+	client_id = data.get("id")
+	client_name = data.get("name")
+	client_email = data.get("email")
+	user_id = data.get("userID")
+
+	ref = db.reference('clients')
+	new_client_ref = ref.push()
+
+	new_client_ref.set(client_id).set({
+		'name': client_name,
+		'email': client_email,
+		'userID': user_id
+	})
+
+	return app.response_class(
+        response=json.dumps({"status": "success", "client_id": new_client_ref.key}),  # Return the new client's key
+        status=201,
+        mimetype="application/json"
+    )
 
 
 # Firebase stuff: #

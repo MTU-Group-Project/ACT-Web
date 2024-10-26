@@ -55,6 +55,11 @@ async function register() {
 	document.location = "/login"
 }
 
+export async function getCurrentUID() {
+	const auth = getAuth();
+	return auth.currentUser ? auth.currentUser.uid : null;
+}
+
 document.login = login
 document.register = register
 document.googleLogin = googleLogin
