@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <base href="/">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="css/style.css">
+        <title>ACT REPORT {{ stockname }}</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <header>
+            <nav class="navbar">
+                <a href="../views/index.html" class="nav-branding">ACT</a>
+                <div class="nav-menu">
+                    <div class="nav-menu">
+                        <div class="nav-item">
+                            <a href="../views/accountDetails.html" class="nav-link">ACCOUNT DETAILS</a>
+                        </div>
+                    </div>
+                </div>
+            </nav> 
+        </header>
+        <main>
+            <h2>{{ stockname }}</h2>
+            <div id="stockgraph">
+                <canvas id="chart"></canvas>
+            </div>
+        </main>
+        <footer>
+            <div class="footerBottom">
+                <p>Copyright &copy;2023; Designed by <span class="designer">Nichita, Daniel, Alex, Wiktor</span></p>
+            </div>
+        </footer>
+        <script>
+            const stockHistory = {{ stockhistory|safe }};
+
+            var i = 0;
+
+            const openPrices = stockHistory.map(s => s.Open);
+            const closePrices = stockHistory.map(s => s.Close);
+            const labels = stockHistory.map(s => `${i--}`).reverse();
+
+
+            const ctx = document.getElementById("chart").getContext("2d");
+
+            const stockChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: "OPEN Price",
+                            data: openPrices,
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            backgroundColor: "rgba(75, 192, 192, 0.2)",
+                            borderWidth: 1
+                        },
+                        {
+                            label: "CLOSE Price",
+                            data: closePrices,
+                            borderColor: "rgba(255, 99, 132, 1)",
+                            backgroundColor: "rgba(255, 99, 132, 0.2)",
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Days"
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: "Price (USD)"
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
