@@ -22,6 +22,7 @@ def login():
 def register():
 	return render_template("register.html")
 
+
 @app.get("/clients")
 def clients():
 	return render_template("clients.html")
@@ -36,6 +37,16 @@ def edit_client(client_id):
     return render_template("editClient.html", client_id=client_id)
 
 
+@app.get("/reports/<stockName>")
+def reports_detail(stockName):
+	sh = shares.get_share_information()
+	for short_name in sh:
+		if short_name == stockName:
+			return render_template("financial_reports_detail.html", stockname=stockName, stockhistory=sh[short_name].history)
+		
+	return redirect("/reports")
+
+
 @app.get("/api/shares")
 def api_shares():
 	res = app.response_class(
@@ -47,23 +58,10 @@ def api_shares():
 	return res
 
 
-shares.begin_share_subroutine(120)
-
 @app.get("/api/clients")
 def get_clients():
     ref = db.reference('clients')
     clients = ref.get()
-    return app.response_class(
-        response=json.dumps(clients),
-        status=200,
-        mimetype="application/json"
-    )
-
-@app.get("/api/clients/user/<user_id>")
-def get_clients_by_user(user_id):
-    ref = db.reference('clients')
-    clients = ref.order_by_child('userID').equal_to(user_id).get()
-
     return app.response_class(
         response=json.dumps(clients),
         status=200,
@@ -146,6 +144,8 @@ def update_client(client_id):
         status=404,
         mimetype="application/json"
     )
+
+shares.begin_share_subroutine(120)
 
 # Firebase stuff: #
 initialize_app()

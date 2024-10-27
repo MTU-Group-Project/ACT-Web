@@ -6,7 +6,11 @@ fetch("http://127.0.0.1:5000/api/shares")
         const row = document.createElement('tr');
 
         const shortNameCell = document.createElement('td');
-        shortNameCell.textContent = stock.short_name;
+        const link = document.createElement('a');
+        link.href = "reports/" + stock.short_name;
+        link.textContent = stock.short_name;
+
+        shortNameCell.appendChild(link);
 
         const longNameCell = document.createElement('td');
         longNameCell.textContent = stock.long_name;

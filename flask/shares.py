@@ -52,11 +52,13 @@ class Share():
     # Short Name e.g. BTC-USD
     # Long Name e.g. Bitcoin
     # Price in a specific currency
-    def __init__(self, short_name: str, long_name: str, price: float, currency: str):
+    # History is [{Open: xxx, Close: xxx, High: xxx, ...}, ...] from yfinance
+    def __init__(self, short_name: str, long_name: str, price: float, currency: str, history: list[dict]):
         self.short_name = short_name
         self.long_name = long_name
         self.price = price
         self.currency = currency
+        self.history = history
 
 
 # Private subroutine to look up shares
@@ -68,8 +70,9 @@ def _research_shares(interval: int) -> None:
             print(f"Searching {ticker}...")
             stock = yf.Ticker(ticker)
             info = stock.info
+            history = stock.history(period="1mo").to_dict("records")
             try:
-                _shares[ticker] = (Share(ticker, info['longName'], info['currentPrice'], info['currency']))
+                _shares[ticker] = Share(ticker, info['longName'], info['currentPrice'], info['currency'], history)
             except KeyError:
                 print("Cannot retrieve data, possibly ratelimited?")
                 break
