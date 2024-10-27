@@ -7,19 +7,18 @@ async function getClients() {
         return;
     }
 
-    const response = await fetch('/api/clients');
+    const response = await fetch(`/api/clients/user/${userID}`);
     if (!response.ok) {
         alert("Failed to fetch clients");
         return;
     }
 
     const clients = await response.json();
-    const filteredClients = clients ? Object.values(clients).filter(client => client.userID === userID) : [];
 
     const tableBody = document.querySelector("#clientsTable tbody");
     tableBody.innerHTML = ""; 
 
-	filteredClients.forEach(client => {
+	clients.forEach(client => {
 		const row = document.createElement("tr");
 		
 		const nameCell = document.createElement("td");

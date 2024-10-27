@@ -59,6 +59,17 @@ def get_clients():
         mimetype="application/json"
     )
 
+@app.get("/api/clients/user/<user_id>")
+def get_clients_by_user(user_id):
+    ref = db.reference('clients')
+    clients = ref.order_by_child('userID').equal_to(user_id).get()
+
+    return app.response_class(
+        response=json.dumps(clients),
+        status=200,
+        mimetype="application/json"
+    )
+
 @app.post("/api/clients")
 def create_client():
     data = request.json
