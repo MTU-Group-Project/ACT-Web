@@ -14,11 +14,12 @@ async function getClients() {
     }
 
     const clients = await response.json();
+    console.log(clients);
 
     const tableBody = document.querySelector("#clientsTable tbody");
     tableBody.innerHTML = ""; 
 
-	clients.forEach(client => {
+	Object.values(clients).forEach(client => {
 		const row = document.createElement("tr");
 		
 		const nameCell = document.createElement("td");
