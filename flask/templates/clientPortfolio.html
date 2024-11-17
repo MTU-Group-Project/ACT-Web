@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/css/style.css">
+        <script type="module" src="/js/login.js"></script>
+        <script type="module" src="/js/clients.js"></script>
+        <title>ACT CLIENTS</title>
+    </head>
+    <body>
+        {% include "header.html" %}
+        <main>
+            <div class="container">
+                <h2>Client Portfolio <a href="#" title="Add Client" onclick="loadStockForm(); toggleStockForm()">➕</a></h2>
+
+                <div id="newStockForm" style="display: none;" onload="loadStockForm()">
+                    <select id="stock" class="inputField" required>
+                        <option value="" disabled selected>Choose a stock to add</option>
+                    </select>
+                    <button class="heroButton" onclick="addStock()">Add</button>
+                    <button class="heroButton" onclick="toggleStockForm()">Cancel</button>
+                </div>
+
+                <table onload="getShares()" id="clientsStockTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Value</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+                <a class="heroButton" onclick="cancelEdit()">Go Back</a>
+            </div>
+        </main>
+        {% include "footer.html" %}
+    </body>
+</html>

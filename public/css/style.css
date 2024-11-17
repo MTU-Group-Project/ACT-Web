@@ -254,7 +254,7 @@ th {
     background-color: #f2f2f2;
 }
 
-#clientForm {
+#clientForm, #newStockForm {
     display: none;
     margin-top: 20px;
     padding: 10px;
@@ -264,14 +264,14 @@ th {
     box-sizing: border-box;
 }
 
-#clientForm input {
+#clientForm input, #newStockForm input {
     margin: 5px 0;
     padding: 8px;
     width: calc(100% - 16px);
     box-sizing: border-box;
 }
 
-#clientForm button {
+#clientForm button, #newStockForm button {
     padding: 8px;
     cursor: pointer;
 }
