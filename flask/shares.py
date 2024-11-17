@@ -77,6 +77,8 @@ def _research_shares(interval: int) -> None:
                 print("Cannot retrieve data, possibly ratelimited?")
                 break
 
+            time.sleep(5)
+
         time.sleep(interval)
 
 

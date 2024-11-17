@@ -4,9 +4,11 @@ from firebase_functions import https_fn
 from hashlib import sha256
 import json
 import shares
+import stripe
 
 app = Flask(__name__)
 
+stripe.api_key = "sk_test_51QKcauDGbrVfwZ9wnSzI0I9l4aOnySfGsU95QJgK1TsrbTyBtx6H5MCpckVZnMPo9K4Vvggt156UGT894Lh2XHZY00sUxL2YuN"
 
 @app.get("/")
 def index():
@@ -145,6 +147,32 @@ def update_client(client_id):
         status=404,
         mimetype="application/json"
     )
+
+
+@app.post("/act_premium")
+def buy_act_premium():
+    payment = stripe.PaymentIntent.create(amount=1099, currency="eur")
+
+    return json.dumps({
+        "secret": payment.client_secret,
+        "id": payment.id
+    })
+
+
+@app.post("/act_premium_purchased")
+def act_premium_purchased():
+    pay_id = request.json.get("payment_id")
+
+    pay_intent = stripe.PaymentIntent.retrieve(pay_id)
+
+    if pay_intent.status != "succeeded":
+        pay_intent.confirm()
+
+    if pay_intent.statement_descriptor == "succeeded":
+          return json.dumps({"status": 1})
+    else:
+          return json.dumps({"status": 0})
+
 
 shares.begin_share_subroutine(120)
 
