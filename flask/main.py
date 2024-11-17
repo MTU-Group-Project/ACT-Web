@@ -53,15 +53,15 @@ def reports_detail(stockName):
 	return redirect("/reports")
 
 
-# @app.get("/api/shares")
-# def api_shares():
-# 	res = app.response_class(
-# 		response=json.dumps(list(shares.get_share_information().values()), default=lambda s: vars(s)),
-# 		status=200,
-# 		mimetype="application/json"
-# 	)
+@app.get("/api/shares")
+def api_shares():
+	res = app.response_class(
+		response=json.dumps(list(shares.get_share_information().values()), default=lambda s: vars(s)),
+		status=200,
+		mimetype="application/json"
+	)
 
-# 	return res
+	return res
 
 
 @app.get("/api/clients")
@@ -74,15 +74,15 @@ def get_clients():
         mimetype="application/json"
     )
 
-@app.get("/api/shares")
-def get_shares():
-    ref = db.reference('shares')
-    shares = ref.get()
-    return app.response_class(
-        response=json.dumps(shares),
-        status=200,
-        mimetype="application/json"
-    )
+# @app.get("/api/shares")
+# def get_shares():
+#     ref = db.reference('shares')
+#     shares = ref.get()
+#     return app.response_class(
+#         response=json.dumps(shares),
+#         status=200,
+#         mimetype="application/json"
+#     )
 
 @app.get("/api/clients/user/<user_id>")
 def get_clients_by_user(user_id):
