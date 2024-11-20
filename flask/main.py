@@ -5,6 +5,7 @@ from hashlib import sha256
 import json
 import shares
 import stripe
+import requests
 
 app = Flask(__name__)
 
@@ -13,6 +14,15 @@ stripe.api_key = "sk_test_51QKcauDGbrVfwZ9wnSzI0I9l4aOnySfGsU95QJgK1TsrbTyBtx6H5
 @app.get("/")
 def index():
 	return redirect("/login", code=302)
+
+
+@app.route("/api/stockinfo/<stock>", methods=["GET"])
+def get_stock_info(stock):
+    external_url = f"https://get-report-xqeobirwha-uc.a.run.app/?stock={stock}"
+    response = requests.get(external_url)
+
+    return response.json()
+     
 
 
 @app.get("/login")

@@ -92,33 +92,20 @@
                 const aiText = document.getElementById('aiText');
                 aiText.style.display = 'block';
 
-                setTimeout(() => {
-                    aiText.innerHTML = `
-                        <strong>Investment Report: Alcoa Corporation (AA)</strong><br>
-                        <em>Date: October 2023</em><br><br>
-                        <strong>1. Research Summary</strong><br>
-                        Apple Inc. (AAPL) continues to demonstrate robust performance in the technology sector, driven by innovation, solid product demand, and an expanding service ecosystem. Recent trends indicate sustained growth potential, with strong earnings, efficient capital deployment, and healthy financial metrics. Our analysis indicates that AAPL stock represents a sound investment opportunity in the current marketplace.<br><br>
-                        <strong>2. Accounting Ratios Analysis</strong><br>
-                        <em>a. Price-to-Earnings (P/E) Ratio</em><br>
-                        - Current P/E Ratio: 29.17 <br><br>
-                        <em>b. Return on Investment (ROI)</em><br>
-                        - ROI from Stock Buyback Program: 105.56%<br><br>
-                        <em>c. Earnings Per Share (EPS)</em><br>
-                        - Current EPS: $6.00<br><br>
-                        <em>d. Current Ratio</em><br>
-                        - Current Ratio: 1.29<br><br>
-                        <em>e. Debt-to-Equity Ratio</em><br>
-                        - Debt-to-Equity Ratio: 1.67<br><br>
-                        <strong>3. Buy/Sell/Hold Recommendation</strong><br>
-                        <strong>Recommendation:</strong> Buy<br>
-                        <strong>Reasoning:</strong> Based on the detailed analysis of AAPL’s accounting ratios and overall financial health, we confidently recommend a buy position for AAPL stock. The favorable P/E ratio implies there is still growth potential ahead, while a high ROI from the buyback program emphasizes Apple's commitment to maximizing shareholder value. Coupled with solid earnings performance showcased by an EPS of $6.00 and a strong current ratio, the stock is positioned to deliver favorable returns. The manageable debt level further reassures investors about the company's long-term viability.<br><br>
-                        <strong>Conclusion:</strong> With the excellent combination of strong earnings performance, effective capital utilization, and solid financial health, AAPL stock offers a compelling investment opportunity for clients seeking to capitalize on growth within the technology sector. We advise entering a buy position at this time.<br><br>
-                        <strong>[Your Name]</strong><br>
-                        <strong>[Your Title]</strong><br>
-                        <strong>[Contact Information]</strong><br>
-                        [Appendix: Additional data and charts, if relevant]
-                    `;
-                }, 3000);
+                var stock = "{{ stockname }}";
+                
+                var id = setInterval(() => {
+                    fetch(`/api/stockinfo/${stock}`)
+                    .then((data) => data.json())
+                    .then((data) => {
+                        if ("report" in data) {
+                            clearInterval(id);
+                            aiText.textContent = data.report;
+                        } else {
+                            aiText.textContent = "Loading...";
+                        }
+                    });
+                }, 5000);
             }
         </script>
     </body>
