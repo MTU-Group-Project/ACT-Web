@@ -145,14 +145,31 @@ async function loadStockForm() {
     const shares = await response.json();
     console.log(shares);
 
+    const pathParts = window.location.pathname.split('/');
+    const clientId = pathParts[pathParts.length - 1];
+
+    const response2 = await fetch(`/api/clients/${clientId}`);
+    let client = null;
+    if (response2.ok) {
+        client = await response2.json();
+    }
+
+    const clientShares = client.shares ? Object.values(client.shares).map(clientShare => clientShare.share_name) : [];
+
     const stockDropdown = document.getElementById("stock");
 
     stockDropdown.innerHTML = '<option value="" disabled selected>Choose a stock to add</option>';
 
     shares.forEach(share => {
         const option = document.createElement("option");
-        option.value = share.id;
-        option.textContent = share.name; 
+        option.value = share.short_name;
+        option.textContent = share.short_name; 
+
+        if (clientShares.includes(share.short_name)) {
+            option.disabled = true;
+            option.style.color = "gray";
+        }
+
         stockDropdown.appendChild(option);
     });
 }
@@ -164,7 +181,7 @@ function toggleStockForm() {
 
 async function addStock() {
     const stockDropdown = document.getElementById("stock");
-    const selectedStockId = stockDropdown.selectedIndex - 1;
+    const selectedStockName = stockDropdown.options[stockDropdown.selectedIndex].text;
 
     const pathParts = window.location.pathname.split('/');
     const clientId = pathParts[pathParts.length - 1];
@@ -174,7 +191,7 @@ async function addStock() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ share_id: selectedStockId })
+        body: JSON.stringify({ share_name: selectedStockName })
     });
 
     if (response.ok) {
@@ -216,35 +233,34 @@ async function getShares() {
     const shares = await response.json();
     const tableBody = document.querySelector("#clientsStockTable tbody");
     tableBody.innerHTML = ""; 
-
-    Object.values(client.shares).forEach((clientShare, index) => {
-        if (shares[clientShare.share_id]) {
-            console.log(`Client has share ${clientShare.share_id}`);
+    console.log(client.shares);
+    Object.values(client.shares).forEach(clientShare => {
+        let matchedStock = shares.find(stock => stock.short_name === clientShare.share_name);
+        if (matchedStock) {
+            console.log(`Client has share ${matchedStock.short_name}`);
 
             const row = document.createElement("tr");
             const nameCell = document.createElement("td");
-            const typeCell = document.createElement("td");
+            const descriptionCell = document.createElement("td");
             const valueCell = document.createElement("td");
             const deleteCell = document.createElement("td");
 
-            nameCell.innerHTML = `${shares[clientShare.share_id].name}`;
-            typeCell.innerHTML = `${shares[clientShare.share_id].type}`;
-            valueCell.innerHTML = `${shares[clientShare.share_id].value}`;
-            deleteCell.innerHTML = `<a href="#" onclick="deleteClientShare('${index}')">❌</a>`;
+            nameCell.innerHTML = `${matchedStock.short_name}`;
+            descriptionCell.innerHTML = `${matchedStock.long_name}`;
+            valueCell.innerHTML = `${matchedStock.price}`;
+            deleteCell.innerHTML = `<a href="#" onclick="deleteClientShare('${matchedStock.short_name}')">❌</a>`;
 
             row.appendChild(nameCell);
-            row.appendChild(typeCell);
+            row.appendChild(descriptionCell);
             row.appendChild(valueCell);
             row.appendChild(deleteCell);
 
             tableBody.appendChild(row);
-        } else {
-            console.log(`Client does NOT have share ${share.id}`);
         }
     });
 }
 
-async function deleteClientShare(index){
+async function deleteClientShare(share_name){
     const pathParts = window.location.pathname.split('/');
     const clientId = pathParts[pathParts.length - 1];
 
@@ -258,7 +274,7 @@ async function deleteClientShare(index){
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ index }) 
+        body: JSON.stringify({ share_name }) 
     });
 
     if (response.ok) {

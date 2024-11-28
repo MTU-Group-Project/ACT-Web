@@ -185,7 +185,7 @@ def update_client(client_id):
 @app.post("/api/clients/<client_id>/shares")
 def add_share_to_client(client_id):
     data = request.json
-    share_id = data.get("share_id")
+    share_name = data.get("share_name")
 
     client_ref = db.reference(f'clients/{client_id}')
 
@@ -199,13 +199,13 @@ def add_share_to_client(client_id):
 
     shares_ref = client_ref.child("shares")
     new_share_ref = shares_ref.push({
-        'share_id': share_id,
+        'share_name': share_name,
     })
 
     return app.response_class(
         response=json.dumps({
             "status": "success",
-            "share_id": share_id,
+            "share_name": share_name,
             "client_id": client_id,
             "share_ref": new_share_ref.key
         }),
@@ -217,18 +217,17 @@ def add_share_to_client(client_id):
 @app.route("/api/clients/<client_id>/shares", methods=["DELETE"])
 def delete_share_from_client(client_id):
     data = request.json
-    index = data.get("index")
+    share_name = data.get("share_name")
 
-    if index is None:
+    if not share_name:
         return app.response_class(
-            response=json.dumps({"error": "Index is required!"}),
+            response=json.dumps({"error": "Share name is required!"}),
             status=400,
             mimetype="application/json"
         )
-    index = int(index)
     
     client_ref = db.reference(f'clients/{client_id}')
-
+    
     client_snapshot = client_ref.get()
     if not client_snapshot:
         return app.response_class(
@@ -238,39 +237,34 @@ def delete_share_from_client(client_id):
         )
 
     shares_ref = client_ref.child("shares")
-
     shares_snapshot = shares_ref.get()
-    if not shares_snapshot:
+    
+    share_key_to_delete = None
+    for key, share in shares_snapshot.items():
+        if share.get('share_name') == share_name:
+            share_key_to_delete = key
+            break
+    
+    if not share_key_to_delete:
         return app.response_class(
-            response=json.dumps({"error": "No shares found for this client!"}),
+            response=json.dumps({"error": f"Share '{share_name}' not found!"}),
             status=404,
             mimetype="application/json"
         )
 
-    shares_list = list(shares_snapshot.items())
-
-    if index < 0 or index >= len(shares_list):
-        return app.response_class(
-            response=json.dumps({"error": "Invalid index!"}),
-            status=400,
-            mimetype="application/json"
-        )
-
-    share_key_to_delete = shares_list[index][0]
     share_ref_to_delete = shares_ref.child(share_key_to_delete)
     share_ref_to_delete.delete()
 
     return app.response_class(
         response=json.dumps({
             "status": "success",
-            "message": f"Share at index {index} removed from client {client_id}!",
+            "message": f"Share '{share_name}' removed from client {client_id}!",
             "client_id": client_id,
-            "index": index,
+            "share_name": share_name,
             "share_key": share_key_to_delete
         }),
         status=200,
-        mimetype="application/json"
-    )
+        mimetype="application/json")
 
 
 @app.post("/act_premium")
