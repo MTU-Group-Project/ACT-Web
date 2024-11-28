@@ -45,7 +45,6 @@
             const closePrices = stockHistory.map(s => s.Close);
             const labels = stockHistory.map(s => `${i--}`).reverse();
 
-
             const ctx = document.getElementById("chart").getContext("2d");
 
             const stockChart = new Chart(ctx, {

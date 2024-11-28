@@ -7,7 +7,7 @@ async function getClients() {
         return;
     }
 
-    const response = await fetch(`/api/clients/user/${userID}`);
+    const response = await fetch(`/api/clients`);
     if (!response.ok) {
         alert("Failed to fetch clients");
         return;
@@ -19,16 +19,17 @@ async function getClients() {
     const tableBody = document.querySelector("#clientsTable tbody");
     tableBody.innerHTML = ""; 
 
-	Object.values(clients).forEach(client => {
+	Object.entries(clients).forEach(([key, client]) => {
+        console.log(key);
 		const row = document.createElement("tr");
 		
 		const nameCell = document.createElement("td");
 		const editCell = document.createElement("td");
 		const deleteCell = document.createElement("td");
 
-		nameCell.innerHTML = `<a href="clientPortfolio/${client.id}">${client.name}</a>`;
-		editCell.innerHTML = `<a href="editClient/${client.id}">✏️</a>`;
-		deleteCell.innerHTML = `<a href="#" onclick="deleteClient('${client.id}')">❌</a>`;
+		nameCell.innerHTML = `<a href="clientPortfolio/${key}">${client.name}</a>`;
+		editCell.innerHTML = `<a href="editClient/${key}">✏️</a>`;
+		deleteCell.innerHTML = `<a href="#" onclick="deleteClient('${key}')">❌</a>`;
 
 		row.appendChild(nameCell);
 		row.appendChild(editCell);
@@ -76,7 +77,7 @@ async function createClient() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name: clientName, email: clientEmail, userID })
+        body: JSON.stringify({ name: clientName, email: clientEmail })
     });
 
     if (response.ok) {
@@ -136,7 +137,7 @@ function cancelEdit() {
 
 async function loadStockForm() {
 
-    const response = await fetch(`/api/shares`);
+    const response = await fetch(`/api/stocks`);
     if (!response.ok) {
         alert("Failed to fetch shares");
         return;
@@ -224,7 +225,7 @@ async function getShares() {
         return;
     }
 
-    const response = await fetch(`/api/shares`);
+    const response = await fetch(`/api/stocks`);
     if (!response.ok) {
         alert("Failed to fetch shares");
         return;
@@ -232,10 +233,9 @@ async function getShares() {
 
     const shares = await response.json();
     const tableBody = document.querySelector("#clientsStockTable tbody");
-    tableBody.innerHTML = ""; 
-    console.log(client.shares);
-    Object.values(client.shares).forEach(clientShare => {
-        let matchedStock = shares.find(stock => stock.short_name === clientShare.share_name);
+    tableBody.innerHTML = "";
+    Object.keys(client.shares).forEach(clientShare => {
+        let matchedStock = shares.find(stock => stock.short_name == clientShare);
         if (matchedStock) {
             console.log(`Client has share ${matchedStock.short_name}`);
 

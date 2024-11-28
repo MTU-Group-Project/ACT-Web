@@ -1,4 +1,3 @@
-import { API } from "/js/api.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"
 
@@ -30,6 +29,16 @@ async function login() {
 	
 	try {
 		credential = await signInWithEmailAndPassword(auth, email, password);
+
+		const user = credential.user;
+		console.log(user);  // Log the user object to verify UID
+
+		// Save access token to be accessed by server
+		const accessToken = await user.getIdToken(true);
+		// Expiry date one month from now
+		let expiryDate = new Date();
+		expiryDate.setMonth(expiryDate.getMonth() + 1);
+		document.cookie = `__session=${accessToken}; expires=${expiryDate.toUTCString()}`;
 	} catch(error) {
 		return alert(error);
 	}

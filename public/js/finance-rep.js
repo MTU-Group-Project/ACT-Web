@@ -1,4 +1,4 @@
-fetch("http://127.0.0.1:5000/api/shares")
+fetch("/api/stocks")
 .then(response => response.json())
 .then(data => {
     const tableBody = document.getElementById('stock-table-body');

@@ -1,11 +1,10 @@
 from flask import Flask, render_template, redirect
 from firebase_admin import initialize_app, db
 from firebase_functions import https_fn
-from hashlib import sha256
 import json
-import shares
 import stripe
-import requests
+import stock
+import user
 
 app = Flask(__name__)
 
@@ -13,70 +12,87 @@ stripe.api_key = "sk_test_51QKcauDGbrVfwZ9wnSzI0I9l4aOnySfGsU95QJgK1TsrbTyBtx6H5
 
 @app.get("/")
 def index():
-	return redirect("/login", code=302)
+    """ Default page """
+
+    return redirect("/login", code=302)
 
 
-@app.route("/api/stockinfo/<stock>", methods=["GET"])
-def get_stock_info(stock):
-    external_url = f"https://get-report-xqeobirwha-uc.a.run.app/?stock={stock}"
-    response = requests.get(external_url)
+@app.get("/api/stocks")
+def get_stocks():
+    """ Gets a list of all available stocks """
 
-    return response.json()
-     
+    return stock.get_stocks()
+
+@app.get("/api/stock/<s>")
+def get_stock(s):
+    """ Get information for a single stock """
+
+    return stock.get_stock(s)
+
+
+@app.get("/api/stockinfo/<s>")
+def get_stock_report(s):
+    """ Get AI generated reports for a stock """
+
+    return stock.get_report(s)
 
 
 @app.get("/login")
 def login():
-	return render_template("login.html")
+    """ Login page """
+
+    return render_template("login.html")
 
 
 @app.get("/register")
 def register():
-	return render_template("register.html")
+    """ Register page """
+
+    return render_template("register.html")
 
 
 @app.get("/clients")
 def clients():
-	return render_template("clients.html")
+    """ Clients page for the manager """
+
+    return render_template("clients.html")
 
 
 @app.get("/reports")
 def reports():
-	return render_template("financial_reports.html")
+    """ Reports page for all stocks """
+
+    return render_template("financial_reports.html")
+
 
 @app.get("/editClient/<client_id>")
 def edit_client(client_id):
     return render_template("editClient.html", client_id=client_id)
+
 
 @app.get("/clientPortfolio/<client_id>")
 def client_portfolio(client_id):
     return render_template("clientPortfolio.html", client_id=client_id)
 
 
-@app.get("/reports/<stockName>")
-def reports_detail(stockName):
-	sh = shares.get_share_information()
-	for short_name in sh:
-		if short_name == stockName:
-			return render_template("financial_reports_detail.html", stockname=stockName, stockhistory=sh[short_name].history)
-		
-	return redirect("/reports")
+@app.get("/reports/<s>")
+def reports_detail(s):
+    info = get_stock(s)
+    
+    print("--------------------------------")
+    print(info)
 
-
-@app.get("/api/shares")
-def api_shares():
-	res = app.response_class(
-		response=json.dumps(list(shares.get_share_information().values()), default=lambda s: vars(s)),
-		status=200,
-		mimetype="application/json"
-	)
-
-	return res
+    if info != {}:
+        return render_template("financial_reports_detail.html", stockname=s, stockhistory=info["history"])
+	
+    return redirect("/reports")
 
 
 @app.get("/api/clients")
 def get_clients():
-    ref = db.reference('clients')
+    uid = user.verify(request)
+
+    ref = db.reference(f"/fundmanager/{uid}/clients")
     clients = ref.get()
     return app.response_class(
         response=json.dumps(clients),
@@ -84,42 +100,33 @@ def get_clients():
         mimetype="application/json"
     )
 
-# @app.get("/api/shares")
-# def get_shares():
-#     ref = db.reference('shares')
-#     shares = ref.get()
+# @app.get("/api/clients/user/<user_id>")
+# def get_clients_by_user(user_id):
+#     # TODO: FIXME !!!!
+#     ref = db.reference('clients')
+#     clients = ref.order_by_child('userID').equal_to(user_id).get()
+
 #     return app.response_class(
-#         response=json.dumps(shares),
+#         response=json.dumps(clients),
 #         status=200,
 #         mimetype="application/json"
 #     )
 
-@app.get("/api/clients/user/<user_id>")
-def get_clients_by_user(user_id):
-    ref = db.reference('clients')
-    clients = ref.order_by_child('userID').equal_to(user_id).get()
-
-    return app.response_class(
-        response=json.dumps(clients),
-        status=200,
-        mimetype="application/json"
-    )
-
 @app.post("/api/clients")
 def create_client():
+    uid = user.verify(request)
+
+    # New client information
     data = request.json
     client_name = data.get("name")
     client_email = data.get("email")
-    user_id = data.get("userID")
 
-    ref = db.reference('clients')
+    ref = db.reference(f"/fundmanager/{uid}/clients")
     new_client_ref = ref.push()
 
     new_client_ref.set({
-		'id': new_client_ref.key,
-        'name': client_name,
-        'email': client_email,
-        'userID': user_id
+        "name": client_name,
+        "email": client_email
     })
 
     return app.response_class(
@@ -130,7 +137,9 @@ def create_client():
 
 @app.delete("/api/clients/<client_id>")
 def delete_client(client_id):
-    ref = db.reference('clients').child(client_id)
+    uid = user.verify(request)
+
+    ref = db.reference(f"fundmanager/{uid}/clients/{client_id}")
     ref.delete()
 
     return app.response_class(
@@ -141,7 +150,9 @@ def delete_client(client_id):
 
 @app.get("/api/clients/<client_id>")
 def get_client(client_id):
-    ref = db.reference('clients').child(client_id)
+    uid = user.verify(request)
+
+    ref = db.reference(f"/fundmanager/{uid}/clients/{client_id}")
     client = ref.get()
     
     if client:
@@ -159,16 +170,18 @@ def get_client(client_id):
 
 @app.put("/api/clients/<client_id>")
 def update_client(client_id):
+    uid = user.verify(request)
+
     data = request.json
     client_name = data.get("name")
     client_email = data.get("email")
 
-    ref = db.reference('clients').child(client_id)
+    ref = db.reference(f"/fundmanager/{uid}/clients/{client_id}")
     
     if ref.get() is not None:
         ref.update({
-            'name': client_name,
-            'email': client_email
+            "name": client_name,
+            "email": client_email
         })
         return app.response_class(
             response=json.dumps({"status": "success", "client_id": client_id}),
@@ -184,10 +197,12 @@ def update_client(client_id):
 
 @app.post("/api/clients/<client_id>/shares")
 def add_share_to_client(client_id):
+    uid = user.verify(request)
+
     data = request.json
     share_name = data.get("share_name")
 
-    client_ref = db.reference(f'clients/{client_id}')
+    client_ref = db.reference(f"/fundmanager/{uid}/clients/{client_id}/")
 
     client_snapshot = client_ref.get()
     if not client_snapshot:
@@ -197,25 +212,15 @@ def add_share_to_client(client_id):
             mimetype="application/json"
         )
 
-    shares_ref = client_ref.child("shares")
-    new_share_ref = shares_ref.push({
-        'share_name': share_name,
-    })
+    client_ref.child("shares").child(share_name).set(1)
 
-    return app.response_class(
-        response=json.dumps({
-            "status": "success",
-            "share_name": share_name,
-            "client_id": client_id,
-            "share_ref": new_share_ref.key
-        }),
-        status=200,
-        mimetype="application/json"
-    )
+    return {"status": "success"}
 
 
-@app.route("/api/clients/<client_id>/shares", methods=["DELETE"])
+@app.delete("/api/clients/<client_id>/shares")
 def delete_share_from_client(client_id):
+    uid = user.verify(request)
+
     data = request.json
     share_name = data.get("share_name")
 
@@ -226,8 +231,8 @@ def delete_share_from_client(client_id):
             mimetype="application/json"
         )
     
-    client_ref = db.reference(f'clients/{client_id}')
-    
+    client_ref = db.reference(f"/fundmanager/{uid}/clients/{client_id}/")
+
     client_snapshot = client_ref.get()
     if not client_snapshot:
         return app.response_class(
@@ -236,35 +241,18 @@ def delete_share_from_client(client_id):
             mimetype="application/json"
         )
 
-    shares_ref = client_ref.child("shares")
-    shares_snapshot = shares_ref.get()
+    shares_ref = client_ref.child(f"shares/{share_name}")
     
-    share_key_to_delete = None
-    for key, share in shares_snapshot.items():
-        if share.get('share_name') == share_name:
-            share_key_to_delete = key
-            break
-    
-    if not share_key_to_delete:
+    if not shares_ref.get():
         return app.response_class(
             response=json.dumps({"error": f"Share '{share_name}' not found!"}),
             status=404,
             mimetype="application/json"
         )
 
-    share_ref_to_delete = shares_ref.child(share_key_to_delete)
-    share_ref_to_delete.delete()
+    shares_ref.delete()
 
-    return app.response_class(
-        response=json.dumps({
-            "status": "success",
-            "message": f"Share '{share_name}' removed from client {client_id}!",
-            "client_id": client_id,
-            "share_name": share_name,
-            "share_key": share_key_to_delete
-        }),
-        status=200,
-        mimetype="application/json")
+    return {"status": "success"}
 
 
 @app.post("/act_premium")
@@ -291,8 +279,6 @@ def act_premium_purchased():
     else:
           return json.dumps({"status": 0})
 
-
-shares.begin_share_subroutine(120)
 
 # Firebase stuff: #
 initialize_app()
