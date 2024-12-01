@@ -177,12 +177,24 @@ async function loadStockForm() {
 
 function toggleStockForm() {
     const form = document.getElementById('newStockForm');
+    const stockDropdown = document.getElementById('stock');
+    const quantityField = document.getElementById('quantity');
+    const alertValueField = document.getElementById('alertValue');
+
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
+
+    if (form.style.display === 'block') {
+        stockDropdown.selectedIndex = 0;
+        quantityField.value = '';
+        alertValueField.value = ''; //
+    }
 }
 
 async function addStock() {
     const stockDropdown = document.getElementById("stock");
     const selectedStockName = stockDropdown.options[stockDropdown.selectedIndex].text;
+    const quantity = parseInt(document.getElementById("quantity").value, 10);
+    const priceAlert = parseFloat(document.getElementById("alertValue").value);
 
     const pathParts = window.location.pathname.split('/');
     const clientId = pathParts[pathParts.length - 1];
@@ -192,17 +204,21 @@ async function addStock() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ share_name: selectedStockName })
+        body: JSON.stringify({
+            share_name: selectedStockName,
+            quantity: quantity,
+            price_alert: priceAlert
+        })
     });
 
     if (response.ok) {
-        alert("Stock added to client successfully!");
+        alert("Stock purchased successfully!");
         toggleStockForm();
         stockDropdown.selectedIndex = 0;
         getShares()
     } else {
         const errorData = await response.json();
-        alert(`Failed to add stock: ${errorData.error}`);
+        alert(`Failed to purchase stock: ${errorData.error}`);
     }
 }
 
@@ -234,38 +250,44 @@ async function getShares() {
     const shares = await response.json();
     const tableBody = document.querySelector("#clientsStockTable tbody");
     tableBody.innerHTML = "";
-    Object.keys(client.shares).forEach(clientShare => {
-        let matchedStock = shares.find(stock => stock.short_name == clientShare);
+    Object.entries(client.shares).forEach(([shareName, shareData]) => {
+        let matchedStock = shares.find(stock => stock.short_name == shareName);
         if (matchedStock) {
             console.log(`Client has share ${matchedStock.short_name}`);
-
             const row = document.createElement("tr");
-            const nameCell = document.createElement("td");
-            const descriptionCell = document.createElement("td");
+            const codeCell = document.createElement("td");
+            const typeCell = document.createElement("td");
+            const quantityCell = document.createElement("td");
             const valueCell = document.createElement("td");
-            const deleteCell = document.createElement("td");
+            const alertValueCell = document.createElement("td");
+            const sellCell = document.createElement("td");
 
-            nameCell.innerHTML = `${matchedStock.short_name}`;
-            descriptionCell.innerHTML = `${matchedStock.long_name}`;
-            valueCell.innerHTML = `${matchedStock.price}`;
-            deleteCell.innerHTML = `<a href="#" onclick="deleteClientShare('${matchedStock.short_name}')">❌</a>`;
+            codeCell.innerHTML = `${matchedStock.short_name}`;
+            typeCell.innerHTML = `${matchedStock.long_name}`;
+            quantityCell.innerHTML = `${shareData.quantity}`;
+            valueCell.innerHTML = `$${matchedStock.price}`;
+            alertValueCell.innerHTML = `$${shareData.price_alert}`;
+            sellCell.innerHTML = `<a href="#" onclick="sellClientShare('${matchedStock.short_name}')">💰</a>`;
 
-            row.appendChild(nameCell);
-            row.appendChild(descriptionCell);
+            row.appendChild(codeCell);
+            row.appendChild(typeCell);
+            row.appendChild(quantityCell);
             row.appendChild(valueCell);
-            row.appendChild(deleteCell);
+            row.appendChild(alertValueCell);
+            row.appendChild(sellCell);
 
             tableBody.appendChild(row);
         }
     });
 }
 
-async function deleteClientShare(share_name){
+async function sellClientShare(share_name){
     const pathParts = window.location.pathname.split('/');
     const clientId = pathParts[pathParts.length - 1];
 
-    const confirmed = confirm("Are you sure you want to delete this share?");
-    if (!confirmed) {
+    const quantityToDelete = prompt(`Enter the quantity of ${share_name} to delete: `);
+    if (isNaN(quantityToDelete) || quantityToDelete <= 0) {
+        alert("Please enter a valid quantity!");
         return;
     }
 
@@ -274,14 +296,14 @@ async function deleteClientShare(share_name){
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ share_name }) 
+        body: JSON.stringify({ share_name: share_name, quantity: parseInt(quantityToDelete) })
     });
 
     if (response.ok) {
-        alert("Share deleted successfully!");
+        alert("Share(s) sold successfully!");
         getShares(); 
     } else {
-        alert("Failed to delete share!");
+        alert("Failed to sell share!");
     }
 }
 
@@ -296,7 +318,7 @@ document.loadStockForm = loadStockForm;
 document.toggleStockForm = toggleStockForm;
 document.addStock = addStock;
 document.getShares = getShares;
-document.deleteClientShare = deleteClientShare;
+document.sellClientShare = sellClientShare;
 
 document.addEventListener('DOMContentLoaded', () => {
     const pathParts = window.location.pathname.split('/');

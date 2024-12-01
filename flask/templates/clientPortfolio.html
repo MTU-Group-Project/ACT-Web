@@ -9,26 +9,32 @@
         <title>ACT CLIENTS</title>
     </head>
     <body>
-        {% include "header.html" %}
+        {% include "signedInHeader.html" %}
         <main>
             <div class="container">
                 <h2>Client Portfolio <a href="#" title="Add Client" onclick="loadStockForm(); toggleStockForm()">➕</a></h2>
 
                 <div id="newStockForm" style="display: none;" onload="loadStockForm()">
                     <select id="stock" class="inputField" required>
-                        <option value="" disabled selected>Choose a stock to add</option>
+                        <option value="" disabled selected>Choose a stock to purchase</option>
                     </select>
-                    <button class="heroButton" onclick="addStock()">Add</button>
+                    <label for="quantity">#</label>
+                    <input id="quantity" class="inputField" type="number" min="1" placeholder="Enter quantity" required />
+                    <label for="alertValue">$</label>
+                    <input id="alertValue" class="inputField" type="number" min="0" placeholder="Enter alert value" required />
+                    <button class="heroButton" onclick="addStock()">Purchase</button>
                     <button class="heroButton" onclick="toggleStockForm()">Cancel</button>
                 </div>
 
                 <table id="clientsStockTable">
                     <thead>
                         <tr>
+                            <th>Code</th>
                             <th>Name</th>
-                            <th>Type</th>
+                            <th>#</th>
                             <th>Value</th>
-                            <th>Delete</th>
+                            <th>Alert Value</th>
+                            <th>Sell</th>
                         </tr>
                     </thead>
                     <tbody>

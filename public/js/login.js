@@ -18,7 +18,7 @@ async function googleLogin() {
 	} catch(error) {
 		return alert(error);
 	}
-	alert("Logged in");
+	window.location.href = '/clients';
 }
 
 
@@ -45,7 +45,7 @@ async function login() {
 
 	const user = credential.user;
 	console.log(user);
-	alert("Logged in")
+	window.location.href = '/clients';
 }
 
 async function register() {
@@ -60,8 +60,7 @@ async function register() {
 	}
 
 	const user = credential.user;
-	alert("Account created")
-	document.location = "/login"
+	window.location.href = '/clients';
 }
 
 export function getCurrentUID() {

@@ -115,7 +115,7 @@ def get_clients():
 @app.post("/api/clients")
 def create_client():
     uid = user.verify(request)
-
+    print(uid)
     # New client information
     data = request.json
     client_name = data.get("name")
@@ -201,6 +201,8 @@ def add_share_to_client(client_id):
 
     data = request.json
     share_name = data.get("share_name")
+    quantity = data.get("quantity")
+    price_alert = data.get("price_alert")
 
     client_ref = db.reference(f"/fundmanager/{uid}/clients/{client_id}/")
 
@@ -211,22 +213,44 @@ def add_share_to_client(client_id):
             status=404,
             mimetype="application/json"
         )
+    
+    shares_ref = client_ref.child("shares")
+    share_snapshot = shares_ref.child(share_name).get()
 
-    client_ref.child("shares").child(share_name).set(1)
+    if share_snapshot:
+        new_quantity = share_snapshot['quantity'] + quantity
+        new_price_alert = price_alert
+        shares_ref.child(share_name).update({
+            "quantity": new_quantity,
+            "price_alert": new_price_alert
+        })
+    else:
+        shares_ref.child(share_name).set({
+            "quantity": quantity,
+            "price_alert": price_alert
+        })
 
     return {"status": "success"}
 
 
 @app.delete("/api/clients/<client_id>/shares")
-def delete_share_from_client(client_id):
+def sell_share_from_client(client_id):
     uid = user.verify(request)
 
     data = request.json
     share_name = data.get("share_name")
+    quantity_to_sell = data.get("quantity")
 
-    if not share_name:
+    if not share_name or quantity_to_sell is None:
         return app.response_class(
-            response=json.dumps({"error": "Share name is required!"}),
+            response=json.dumps({"error": "Share name and quantity are required!"}),
+            status=400,
+            mimetype="application/json"
+        )
+    
+    if quantity_to_sell <= 0:
+        return app.response_class(
+            response=json.dumps({"error": "Quantity must be a positive integer!"}),
             status=400,
             mimetype="application/json"
         )
@@ -242,15 +266,30 @@ def delete_share_from_client(client_id):
         )
 
     shares_ref = client_ref.child(f"shares/{share_name}")
-    
-    if not shares_ref.get():
+    share_snapshot = shares_ref.get()
+
+    if not share_snapshot:
         return app.response_class(
             response=json.dumps({"error": f"Share '{share_name}' not found!"}),
             status=404,
             mimetype="application/json"
         )
+    
+    current_quantity = share_snapshot['quantity']
 
-    shares_ref.delete()
+    if current_quantity < quantity_to_sell:
+        return app.response_class(
+            response=json.dumps({"error": "Not enough shares to sell!"}),
+            status=400,
+            mimetype="application/json"
+        )
+    
+    new_quantity = current_quantity - quantity_to_sell
+
+    if new_quantity > 0:
+        shares_ref.update({"quantity": new_quantity})
+    else:
+        shares_ref.delete()
 
     return {"status": "success"}
 

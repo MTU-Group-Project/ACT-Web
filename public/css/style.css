@@ -61,7 +61,7 @@ main
 
 /*navbar css*/
 header{
-    background-color: #000000;
+    background-color: #1F41BB;
 }
 
 li{
@@ -135,8 +135,8 @@ body {
 .heroButton {
     text-decoration: none;
     color: white;
-    background-color: #000000;
-    border: 1px solid black;
+    background-color: #1F41BB;
+    border: 1px solid #1F41BB;
     padding: 10px 30px;
     border-radius: 5px;
     margin-top: 10px;
@@ -146,7 +146,7 @@ body {
 }
 
 .heroButton:hover {
-    background-color: white;
+    background-color: #C7D3FF;
     color: #000;
 }
 
@@ -154,6 +154,9 @@ p {
     font-size: 1.5em;
 }
 
+a{
+    text-decoration: none;
+}
 
 .login-with-google-btn {
     transition: background-color .3s, box-shadow .3s;
@@ -202,11 +205,11 @@ p {
 /*Footer css*/
 footer{
     margin-top: 20px;
-    background-color: #000000;
+    background-color: #1F41BB;
 }
 
 .footerBottom{
-    background-color: #000000;
+    background-color: #1F41BB;
     padding: 20px;
     text-align: center;
 }
@@ -228,9 +231,10 @@ footer{
     width: 100%;
     padding: 10px;
     margin: 10px 0;
-    border: 1px solid #ccc;
+    border: 1px solid #1F41BB;
     border-radius: 5px;
     font-size: 1rem;
+    background-color: #C7D3FF;
 }
 
 .inputField:focus {
