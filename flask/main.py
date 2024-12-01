@@ -2,13 +2,10 @@ from flask import Flask, render_template, redirect
 from firebase_admin import initialize_app, db
 from firebase_functions import https_fn
 import json
-import stripe
 import stock
 import user
 
 app = Flask(__name__)
-
-stripe.api_key = "sk_test_51QKcauDGbrVfwZ9wnSzI0I9l4aOnySfGsU95QJgK1TsrbTyBtx6H5MCpckVZnMPo9K4Vvggt156UGT894Lh2XHZY00sUxL2YuN"
 
 @app.get("/")
 def index():
@@ -292,31 +289,6 @@ def sell_share_from_client(client_id):
         shares_ref.delete()
 
     return {"status": "success"}
-
-
-@app.post("/act_premium")
-def buy_act_premium():
-    payment = stripe.PaymentIntent.create(amount=1099, currency="eur")
-
-    return json.dumps({
-        "secret": payment.client_secret,
-        "id": payment.id
-    })
-
-
-@app.post("/act_premium_purchased")
-def act_premium_purchased():
-    pay_id = request.json.get("payment_id")
-
-    pay_intent = stripe.PaymentIntent.retrieve(pay_id)
-
-    if pay_intent.status != "succeeded":
-        pay_intent.confirm()
-
-    if pay_intent.statement_descriptor == "succeeded":
-          return json.dumps({"status": 1})
-    else:
-          return json.dumps({"status": 0})
 
 
 # Firebase stuff: #
