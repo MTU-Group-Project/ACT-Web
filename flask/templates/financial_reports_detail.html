@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="css/style.css">
         <title>ACT REPORT {{ stockname }}</title>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     </head>
     <body>
         {% include "signedInHeader.html" %}
@@ -17,7 +18,8 @@
             </div>
             <div>
                 <a class="heroButton" onclick="generateAI()">Generate AI Report</a>
-                <p id="aiText">Loading...</p>
+                <p id="aiStatus">Unrequested...</p>
+                <p id="aiText"></p>
             </div>
         </main>
         <footer>
@@ -76,24 +78,31 @@
                 }
             });
 
+            var interval = null;
+
             function generateAI() {
-                const aiText = document.getElementById('aiText');
-                aiText.style.display = 'block';
 
                 var stock = "{{ stockname }}";
                 
-                var id = setInterval(() => {
-                    fetch(`/api/stockinfo/${stock}`)
-                    .then((data) => data.json())
-                    .then((data) => {
-                        if ("report" in data) {
-                            clearInterval(id);
-                            aiText.textContent = data.report;
-                        } else {
-                            aiText.textContent = "Loading...";
-                        }
+                // Make a call to start the request, but this fetch call is not useful
+                //   after this point. Read Firebase to get the data instead
+                fetch(`/api/startreport/${stock}`);
+
+                if (interval != null)
+                    clearInterval(interval);
+
+                interval = setInterval(() => {
+                    fetch(`/api/stockstatus/${stock}`).then(data => data.text()).then(data => {
+                        document.querySelector("#aiStatus").textContent = `AI Report Status: ${data}`;
                     });
-                }, 5000);
+
+                    fetch(`/api/stockreport/${stock}`).then(data => data.text()).then(data => {
+                        if (data != "")
+                            clearInterval(interval);
+
+                        document.querySelector("#aiText").innerHTML = marked.parse(data);
+                    });
+                }, 1000);
             }
         </script>
     </body>

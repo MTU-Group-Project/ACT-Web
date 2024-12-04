@@ -27,11 +27,26 @@ def get_stock(s):
     return stock.get_stock(s)
 
 
-@app.get("/api/stockinfo/<s>")
+@app.get("/api/startreport/<s>")
+def start_stock_report(s):
+    """ Get the status of the AI generated report for a stock """
+
+    stock.start_report(s)
+    return "Started Report"
+
+
+@app.get("/api/stockstatus/<s>")
+def get_stock_status(s):
+    """ Get the status of the AI generated report for a stock """
+
+    return stock.get_status(db, s)
+
+
+@app.get("/api/stockreport/<s>")
 def get_stock_report(s):
     """ Get AI generated reports for a stock """
 
-    return stock.get_report(s)
+    return stock.get_report(db, s)
 
 
 @app.get("/login")
@@ -75,9 +90,6 @@ def client_portfolio(client_id):
 @app.get("/reports/<s>")
 def reports_detail(s):
     info = get_stock(s)
-    
-    print("--------------------------------")
-    print(info)
 
     if info != {}:
         return render_template("financial_reports_detail.html", stockname=s, stockhistory=info["history"])
@@ -112,7 +124,7 @@ def get_clients():
 @app.post("/api/clients")
 def create_client():
     uid = user.verify(request)
-    print(uid)
+
     # New client information
     data = request.json
     client_name = data.get("name")
