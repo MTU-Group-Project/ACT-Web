@@ -16,6 +16,12 @@
             <div id="stockgraph">
                 <canvas id="chart"></canvas>
             </div>
+            {% if esginformation %}
+                <div id="esggraph">
+                    <h3>ESG Data for {{ stockname }}</h3>
+                    <canvas id="esgChart"></canvas>
+                </div>
+            {% endif %}
             <div>
                 <a class="heroButton" onclick="generateAI()">Generate AI Report</a>
                 <p id="aiStatus">Unrequested...</p>
@@ -29,6 +35,7 @@
         </footer>
         <script>
             const stockHistory = {{ stockhistory|safe }};
+            const esgInformation = {{ esginformation|safe }};
 
             var i = 0;
 
@@ -77,6 +84,76 @@
                     }
                 }
             });
+
+            if (esgInformation) {
+                const esgLabels = Object.keys(esgInformation);
+                const esgScores = Object.values(esgInformation);
+
+                const totalIndex = esgLabels.indexOf('total');
+                if (totalIndex !== -1) {
+                    esgLabels.splice(totalIndex, 1);
+                    esgScores.splice(totalIndex, 1);
+                }
+
+                const averageScores = esgLabels.map(label => {
+                    switch (label) {
+                        case 'environment':
+                            return 45;
+                        case 'social':
+                            return 35;
+                        case 'governance':
+                            return 42;
+                        default:
+                            return 0;
+                    }
+                });
+
+                const esgCtx = document.getElementById("esgChart").getContext("2d");
+
+                const esgChart = new Chart(esgCtx, {
+                    type: "bar", 
+                    data: {
+                        labels: esgLabels,
+                        datasets: [{
+                            label: "ESG Score",
+                            data: esgScores,
+                            borderColor: "rgba(54, 162, 235, 1)",
+                            backgroundColor: "rgba(54, 162, 235, 0.2)",
+                            borderWidth: 1
+                        },
+                        {
+                            label: "Average ESG Score",
+                            data: averageScores,
+                            borderColor: "rgba(255, 159, 64, 1)",
+                            backgroundColor: "rgba(255, 159, 64, 0.6)",
+                            borderWidth: 1
+                        }
+                    ]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "ESG Factors"
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                min: 0,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: "Score"
+                                },
+                                ticks: {
+                                    stepSize: 10
+                                }
+                            }
+                        }
+                    }
+                });
+            }
 
             var interval = null;
 

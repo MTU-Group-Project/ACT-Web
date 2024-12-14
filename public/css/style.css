@@ -291,6 +291,17 @@ th {
     width: 80%;
 }
 
+#esggraph {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+#esgChart {
+    width: 100%;
+    height: 500px;
+}
+
 #aiText {
     padding: 20px;
     margin-top: 20px;

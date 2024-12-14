@@ -92,7 +92,7 @@ def reports_detail(s):
     info = get_stock(s)
 
     if info != {}:
-        return render_template("financial_reports_detail.html", stockname=s, stockhistory=info["history"])
+        return render_template("financial_reports_detail.html", stockname=s, stockhistory=info["history"], esginformation=info["esg"])
 	
     return redirect("/reports")
 
