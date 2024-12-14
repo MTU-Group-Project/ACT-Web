@@ -259,7 +259,7 @@ th {
     background-color: #f2f2f2;
 }
 
-#clientForm, #newStockForm {
+#clientForm, #newStockForm, #manageAlertsForm {
     display: none;
     margin-top: 20px;
     padding: 10px;
@@ -269,16 +269,22 @@ th {
     box-sizing: border-box;
 }
 
-#clientForm input, #newStockForm input {
+#clientForm input, #newStockForm input, #manageAlertsForm input {
     margin: 5px 0;
     padding: 8px;
     width: calc(100% - 16px);
     box-sizing: border-box;
 }
 
-#clientForm button, #newStockForm button {
+#clientForm button, #newStockForm button, #manageAlertsForm button {
     padding: 8px;
     cursor: pointer;
+}
+
+#manageAlertsForm {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 #stockgraph {

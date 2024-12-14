@@ -20,8 +20,6 @@
                     </select>
                     <label for="quantity">#</label>
                     <input id="quantity" class="inputField" type="number" min="1" placeholder="Enter quantity" required />
-                    <label for="alertValue">$</label>
-                    <input id="alertValue" class="inputField" type="number" min="0" placeholder="Enter alert value" required />
                     <button class="heroButton" onclick="addStock()">Purchase</button>
                     <button class="heroButton" onclick="toggleStockForm()">Cancel</button>
                 </div>
@@ -33,7 +31,7 @@
                             <th>Name</th>
                             <th>#</th>
                             <th>Value</th>
-                            <th>Alert Value</th>
+                            <th>Alert(s)</th>
                             <th>Sell</th>
                         </tr>
                     </thead>
@@ -41,6 +39,23 @@
 
                     </tbody>
                 </table>
+                <div id="manageAlertsForm" >
+                    <h3>Manage Alerts for <span id="manageAlertsShareName"></span> <a href="#" title="Add Alert" id="addAlertLink" onclick="">➕</a></h3>
+                    <table id="alertTable">
+                        <thead>
+                            <tr>
+                                <th>Alert Value</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                    <button class="heroButton" onclick="closeManageAlertsForm()">Close</button>
+                </div>
+
+
                 <a class="heroButton" onclick="cancelEdit()">Go Back</a>
             </div>
         </main>

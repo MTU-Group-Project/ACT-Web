@@ -165,12 +165,6 @@ async function loadStockForm() {
         const option = document.createElement("option");
         option.value = share.short_name;
         option.textContent = share.short_name; 
-
-        if (clientShares.includes(share.short_name)) {
-            option.disabled = true;
-            option.style.color = "gray";
-        }
-
         stockDropdown.appendChild(option);
     });
 }
@@ -179,22 +173,24 @@ function toggleStockForm() {
     const form = document.getElementById('newStockForm');
     const stockDropdown = document.getElementById('stock');
     const quantityField = document.getElementById('quantity');
-    const alertValueField = document.getElementById('alertValue');
 
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
 
     if (form.style.display === 'block') {
         stockDropdown.selectedIndex = 0;
         quantityField.value = '';
-        alertValueField.value = ''; //
     }
 }
 
 async function addStock() {
     const stockDropdown = document.getElementById("stock");
+    if (stockDropdown.selectedIndex == 0){
+        alert("Select a valid stock!");
+        return;
+    }
+
     const selectedStockName = stockDropdown.options[stockDropdown.selectedIndex].text;
     const quantity = parseInt(document.getElementById("quantity").value, 10);
-    const priceAlert = parseFloat(document.getElementById("alertValue").value);
 
     const pathParts = window.location.pathname.split('/');
     const clientId = pathParts[pathParts.length - 1];
@@ -207,7 +203,6 @@ async function addStock() {
         body: JSON.stringify({
             share_name: selectedStockName,
             quantity: quantity,
-            price_alert: priceAlert
         })
     });
 
@@ -226,7 +221,7 @@ async function getShares() {
     const pathParts = window.location.pathname.split('/');
     const clientId = pathParts[pathParts.length - 1];
     const userID = await getCurrentUID();
-    
+
     if (!userID) {
         alert("User not logged in!");
         return;
@@ -250,10 +245,10 @@ async function getShares() {
     const shares = await response.json();
     const tableBody = document.querySelector("#clientsStockTable tbody");
     tableBody.innerHTML = "";
-    Object.entries(client.shares).forEach(([shareName, shareData]) => {
-        let matchedStock = shares.find(stock => stock.short_name == shareName);
+
+    Object.entries(client.shares).forEach(([purchaseId, shareData]) => {
+        let matchedStock = shares.find(stock => stock.short_name === shareData.share_name);
         if (matchedStock) {
-            console.log(`Client has share ${matchedStock.short_name}`);
             const row = document.createElement("tr");
             const codeCell = document.createElement("td");
             const typeCell = document.createElement("td");
@@ -266,8 +261,22 @@ async function getShares() {
             typeCell.innerHTML = `${matchedStock.long_name}`;
             quantityCell.innerHTML = `${shareData.quantity}`;
             valueCell.innerHTML = `$${matchedStock.price}`;
-            alertValueCell.innerHTML = `$${shareData.price_alert}`;
-            sellCell.innerHTML = `<a href="#" onclick="sellClientShare('${matchedStock.short_name}')">💰</a>`;
+            sellCell.innerHTML = `<a href="#" onclick="sellClientShare('${matchedStock.short_name}', '${purchaseId}')">💰</a>`;
+            if (shareData.alerts) {
+                const alertValues = Object.values(shareData.alerts).map(alert => `$${alert.price}`).join(', ');
+                alertValueCell.innerHTML = `${alertValues}<br>`;
+            } else {
+                alertValueCell.innerHTML = '-';
+            }
+
+            const manageAlertsLink = document.createElement('a');
+            manageAlertsLink.href = `#`;
+            manageAlertsLink.innerHTML = "Manage";
+            manageAlertsLink.onclick = function() {
+                manageAlerts(shareData.share_name, purchaseId, shareData.alerts);
+            };
+
+            alertValueCell.appendChild(manageAlertsLink);
 
             row.appendChild(codeCell);
             row.appendChild(typeCell);
@@ -281,7 +290,8 @@ async function getShares() {
     });
 }
 
-async function sellClientShare(share_name){
+
+async function sellClientShare(share_name, purchaseId) {
     const pathParts = window.location.pathname.split('/');
     const clientId = pathParts[pathParts.length - 1];
 
@@ -296,17 +306,110 @@ async function sellClientShare(share_name){
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ share_name: share_name, quantity: parseInt(quantityToDelete) })
+        body: JSON.stringify({ share_name: share_name, purchase_id: purchaseId, quantity: parseInt(quantityToDelete) })
     });
 
     if (response.ok) {
         alert("Share(s) sold successfully!");
-        getShares(); 
+        getShares();
     } else {
         alert("Failed to sell share!");
     }
 }
 
+function manageAlerts(shareName, purchaseId, alerts) {
+    document.getElementById('manageAlertsShareName').innerText = shareName;
+
+    const alertTableBody = document.querySelector("#alertTable tbody");
+    alertTableBody.innerHTML = '';
+    if (alerts) {
+        Object.entries(alerts).forEach(([alertId, alert]) => {
+            const row = document.createElement("tr");
+
+            const alertValueCell = document.createElement("td");
+            alertValueCell.innerText = `$${alert.price}`;
+            const actionCell = document.createElement("td");
+            actionCell.innerHTML = `<a href="#" onclick="deleteAlert('${purchaseId}', '${alertId}');">❌</a>`;
+
+            row.appendChild(alertValueCell);
+            row.appendChild(actionCell);
+
+            alertTableBody.appendChild(row);
+        });
+    }
+
+    const addAlertLink = document.getElementById('addAlertLink');
+    addAlertLink.onclick = function () {
+        addAlert(purchaseId);
+    };
+
+    document.getElementById('manageAlertsForm').style.display = 'flex';
+}
+
+function closeManageAlertsForm() {
+    document.getElementById('manageAlertsForm').style.display = 'none';
+}
+
+async function addAlert(purchaseId) {
+    const alertValue = prompt("Enter a new alert value:");
+
+    if (alertValue) {
+        const userID = await getCurrentUID();
+        if (!userID) {
+            alert("User not logged in!");
+            return;
+        }
+
+        const pathParts = window.location.pathname.split('/');
+        const clientId = pathParts[pathParts.length - 1];
+
+        const response = await fetch(`/api/clients/${clientId}/shares/${purchaseId}/alerts`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ alert_value: alertValue }),
+        });
+
+        if (response.ok) {
+            alert("Alert added successfully!");
+            await getShares();
+            closeManageAlertsForm();
+        } else {
+            const errorData = await response.json();
+            alert(`Failed to add alert: ${errorData.error}`);
+        }
+    }
+}
+
+async function deleteAlert(purchaseId, alertId) {
+    const confirmed = confirm("Are you sure you want to delete this alert?");
+    if (!confirmed) {
+        return;
+    }
+
+    const userID = await getCurrentUID();
+    if (!userID) {
+        alert("User not logged in!");
+        return;
+    }
+
+    const pathParts = window.location.pathname.split('/');
+    const clientId = pathParts[pathParts.length - 1];
+
+    const response = await fetch(`/api/clients/${clientId}/shares/${purchaseId}/alerts/${alertId}`, {
+        method: 'DELETE',
+    });
+
+    if (response.ok) {
+        alert("Alert deleted successfully!");
+        await getShares();
+        closeManageAlertsForm();
+    } else {
+        const errorData = await response.json();
+        alert(`Failed to delete alert: ${errorData.error}`);
+    }
+}
 
 document.getClients = getClients;
 document.createClient = createClient;
@@ -319,6 +422,10 @@ document.toggleStockForm = toggleStockForm;
 document.addStock = addStock;
 document.getShares = getShares;
 document.sellClientShare = sellClientShare;
+document.manageAlerts = manageAlerts;
+document.closeManageAlertsForm = closeManageAlertsForm;
+document.addAlert = addAlert;
+document.deleteAlert = deleteAlert;
 
 document.addEventListener('DOMContentLoaded', () => {
     const pathParts = window.location.pathname.split('/');

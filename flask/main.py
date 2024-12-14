@@ -211,7 +211,6 @@ def add_share_to_client(client_id):
     data = request.json
     share_name = data.get("share_name")
     quantity = data.get("quantity")
-    price_alert = data.get("price_alert")
 
     client_ref = db.reference(f"/fundmanager/{uid}/clients/{client_id}/")
 
@@ -224,22 +223,21 @@ def add_share_to_client(client_id):
         )
     
     shares_ref = client_ref.child("shares")
-    share_snapshot = shares_ref.child(share_name).get()
 
-    if share_snapshot:
-        new_quantity = share_snapshot['quantity'] + quantity
-        new_price_alert = price_alert
-        shares_ref.child(share_name).update({
-            "quantity": new_quantity,
-            "price_alert": new_price_alert
-        })
-    else:
-        shares_ref.child(share_name).set({
-            "quantity": quantity,
-            "price_alert": price_alert
-        })
+    new_purchase_ref = shares_ref.push()
 
-    return {"status": "success"}
+    new_purchase_ref.set({
+        "share_name": share_name,
+        "quantity": quantity,
+        "alerts": [],
+    })
+
+    return app.response_class(
+        response=json.dumps({"status": "success", "purchase_id": new_purchase_ref.key}),
+        status=201,
+        mimetype="application/json"
+    )
+
 
 
 @app.delete("/api/clients/<client_id>/shares")
@@ -248,22 +246,16 @@ def sell_share_from_client(client_id):
 
     data = request.json
     share_name = data.get("share_name")
+    purchase_id = data.get("purchase_id")
     quantity_to_sell = data.get("quantity")
 
-    if not share_name or quantity_to_sell is None:
+    if not share_name or not purchase_id or quantity_to_sell is None:
         return app.response_class(
-            response=json.dumps({"error": "Share name and quantity are required!"}),
+            response=json.dumps({"error": "Share name, purchase ID, and quantity are required!"}),
             status=400,
             mimetype="application/json"
         )
-    
-    if quantity_to_sell <= 0:
-        return app.response_class(
-            response=json.dumps({"error": "Quantity must be a positive integer!"}),
-            status=400,
-            mimetype="application/json"
-        )
-    
+
     client_ref = db.reference(f"/fundmanager/{uid}/clients/{client_id}/")
 
     client_snapshot = client_ref.get()
@@ -274,16 +266,16 @@ def sell_share_from_client(client_id):
             mimetype="application/json"
         )
 
-    shares_ref = client_ref.child(f"shares/{share_name}")
+    shares_ref = client_ref.child(f"shares/{purchase_id}")
     share_snapshot = shares_ref.get()
 
     if not share_snapshot:
         return app.response_class(
-            response=json.dumps({"error": f"Share '{share_name}' not found!"}),
+            response=json.dumps({"error": f"Purchase '{purchase_id}' not found!"}),
             status=404,
             mimetype="application/json"
         )
-    
+
     current_quantity = share_snapshot['quantity']
 
     if current_quantity < quantity_to_sell:
@@ -292,7 +284,7 @@ def sell_share_from_client(client_id):
             status=400,
             mimetype="application/json"
         )
-    
+
     new_quantity = current_quantity - quantity_to_sell
 
     if new_quantity > 0:
@@ -301,6 +293,91 @@ def sell_share_from_client(client_id):
         shares_ref.delete()
 
     return {"status": "success"}
+
+@app.post("/api/clients/<client_id>/shares/<purchase_id>/alerts")
+def add_price_alert(client_id, purchase_id):
+    uid = user.verify(request)
+
+    data = request.json
+    alert_value = data.get("alert_value")
+
+    if not alert_value:
+        return app.response_class(
+            response=json.dumps({"error": "Alert value is required"}),
+            status=400,
+            mimetype="application/json"
+        )
+
+    client_ref = db.reference(f"/fundmanager/{uid}/clients/{client_id}/")
+    client_snapshot = client_ref.get()
+    if not client_snapshot:
+        return app.response_class(
+            response=json.dumps({"error": "Client not found"}),
+            status=404,
+            mimetype="application/json"
+        )
+
+    share_ref = client_ref.child("shares").child(purchase_id)
+    share_snapshot = share_ref.get()
+    if not share_snapshot:
+        return app.response_class(
+            response=json.dumps({"error": "Share not found"}),
+            status=404,
+            mimetype="application/json"
+        )
+
+    alert_data = {
+        "price": alert_value
+    }
+
+    alerts_ref = share_ref.child("alerts")
+    alerts_ref.push(alert_data)
+
+    return app.response_class(
+        response=json.dumps({"status": "success", "message": "Price alert added"}),
+        status=201,
+        mimetype="application/json"
+    )
+
+@app.delete("/api/clients/<client_id>/shares/<purchase_id>/alerts/<alert_id>")
+def delete_price_alert(client_id, purchase_id, alert_id):
+    uid = user.verify(request)
+
+    client_ref = db.reference(f"/fundmanager/{uid}/clients/{client_id}/")
+    client_snapshot = client_ref.get()
+    if not client_snapshot:
+        return app.response_class(
+            response=json.dumps({"error": "Client not found"}),
+            status=404,
+            mimetype="application/json"
+        )
+
+    share_ref = client_ref.child("shares").child(purchase_id)
+    share_snapshot = share_ref.get()
+    if not share_snapshot:
+        return app.response_class(
+            response=json.dumps({"error": "Share not found"}),
+            status=404,
+            mimetype="application/json"
+        )
+
+    alert_ref = share_ref.child("alerts").child(alert_id)
+    alert_snapshot = alert_ref.get()
+    if not alert_snapshot:
+        return app.response_class(
+            response=json.dumps({"error": "Price alert not found"}),
+            status=404,
+            mimetype="application/json"
+        )
+
+    alert_ref.delete()
+
+    return app.response_class(
+        response=json.dumps({"status": "success", "message": "Price alert deleted"}),
+        status=200,
+        mimetype="application/json"
+    )
+
 
 
 # Firebase stuff: #
