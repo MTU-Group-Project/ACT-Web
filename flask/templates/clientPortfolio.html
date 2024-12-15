@@ -12,9 +12,9 @@
         {% include "signedInHeader.html" %}
         <main>
             <div class="container">
-                <h2>Client Portfolio <a href="#" title="Add Client" onclick="loadStockForm(); toggleStockForm()">➕</a></h2>
+                <h2>Client Portfolio <a href="#" title="Add Client" onclick="toggleStockForm()">➕</a></h2>
 
-                <div id="newStockForm" style="display: none;" onload="loadStockForm()">
+                <div id="newStockForm" style="display: none;">
                     <select id="stock" class="inputField" required>
                         <option value="" disabled selected>Choose a stock to purchase</option>
                     </select>

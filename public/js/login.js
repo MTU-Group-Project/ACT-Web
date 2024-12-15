@@ -55,12 +55,13 @@ async function register() {
 	
 	try {
 		credential = await createUserWithEmailAndPassword(auth, email, password);
+		alert("Profile created successfully!");
 	} catch(error) {
 		return alert(error);
 	}
 
 	const user = credential.user;
-	window.location.href = '/clients';
+	window.location.href = '/login';
 }
 
 export function getCurrentUID() {

@@ -93,6 +93,11 @@ async function createClient() {
 function toggleClientForm() {
     const form = document.getElementById('clientForm');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
+
+    const clientNameField = document.getElementById('clientName');
+    clientNameField.value = '';
+    const clientEmailField = document.getElementById('clientEmail');
+    clientEmailField.value = '';
 }
 
 async function loadClient() {
@@ -144,7 +149,6 @@ async function loadStockForm() {
     }
 
     const shares = await response.json();
-    console.log(shares);
 
     const pathParts = window.location.pathname.split('/');
     const clientId = pathParts[pathParts.length - 1];
@@ -438,5 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     else if (secondPart === "clientPortfolio") {
         getShares();
+        loadStockForm();
     }
 });
