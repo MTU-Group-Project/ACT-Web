@@ -14,11 +14,17 @@ const auth = getAuth();
 async function googleLogin() {
 	const provider = new GoogleAuthProvider();
 	try {
-		let loginResult = await signInWithPopup(auth, provider);
+		var loginResult = await signInWithPopup(auth, provider);
+
+		const accessToken = await loginResult.user.getIdToken(true);
+		// Expiry date one month from now
+		let expiryDate = new Date();
+		expiryDate.setMonth(expiryDate.getMonth() + 1);
+		document.cookie = `__session=${accessToken}; expires=${expiryDate.toUTCString()}`;
+		window.location.href = '/clients';
 	} catch(error) {
 		return alert(error);
 	}
-	window.location.href = '/clients';
 }
 
 
@@ -39,13 +45,12 @@ async function login() {
 		let expiryDate = new Date();
 		expiryDate.setMonth(expiryDate.getMonth() + 1);
 		document.cookie = `__session=${accessToken}; expires=${expiryDate.toUTCString()}`;
+	
+		console.log(user);
+		window.location.href = '/clients';
 	} catch(error) {
 		return alert(error);
 	}
-
-	const user = credential.user;
-	console.log(user);
-	window.location.href = '/clients';
 }
 
 async function register() {
